@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blessed Paradise - CBT Portal</title>
+  <style>
+    :root {
+      --primary: #064e3b;
+      --accent: #f59e0b;
+      --bg: #f5f5f4;
+      --dark: #1c1917;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--dark);
+      margin: 0;
+      padding: 0;
+      font-size: 14px;
+    }
+    header {
+      background-color: var(--primary);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .container {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 15px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 18px;
+      border-bottom: 2px solid #f0f0ee;
+      padding-bottom: 8px;
+    }
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      font-size: 15px;
+    }
+    .btn:active { opacity: 0.9; }
+    .hidden { display: none !important; }
+    .timer-bar {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+    .question-box {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+    .option-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .option-btn.selected {
+      background-color: #d1fae5;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+    .nav-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--dark);
+    }
+    .score-circle {
+      width: 100px;
+      height: 100px;
+      background: #d1fae5;
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin: 20px auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th {
+      background: #f1f5f9;
+      color: var(--primary);
+    }
+    #pin-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    #pin-box {
+      background: white;
+      border-radius: 10px;
+      padding: 28px 24px;
+      width: 280px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    #pin-box h3 {
+      margin: 0 0 6px;
+      color: var(--primary);
+    }
+    #pin-box p {
+      font-size: 12px;
+      color: #666;
+      margin: 0 0 16px;
+    }
+    #pin-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 20px;
+      text-align: center;
+      letter-spacing: 6px;
+      box-sizing: border-box;
+    }
+    #pin-input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    #pin-error {
+      color: #dc2626;
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+    .pin-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    #screen-already-taken {
+      text-align: center;
+    }
+    #screen-already-taken .icon {
+      font-size: 48px;
+      margin: 10px 0;
+    }
+    #screen-already-taken p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>Blessed Paradise School</header>
+
+  <div id="pin-overlay" class="hidden">
+    <div id="pin-box">
+      <h3>🔐 Teacher Access</h3>
+      <p>Enter your 4-digit admin PIN to continue</p>
+      <input type="password" id="pin-input" maxlength="4" inputmode="numeric" placeholder="••••">
+      <div id="pin-error"></div>
+      <div class="pin-btns">
+        <button class="btn btn-secondary" style="margin-top:0;" onclick="closePinOverlay()">Cancel</button>
+        <button class="btn" style="margin-top:0;" onclick="verifyPin()">Enter</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div id="screen-auth" class="card">
+      <h2>CBT Examination Portal</h2>
+      <label>Full Name</label>
+      <input type="text" id="login-name" placeholder="Enter student's full name">
+      <label>Class Segment</label>
+      <select id="login-class">
+        <option value="JSS 1">Junior Secondary School 1 (JSS 1)</option>
+        <option value="JSS 2">Junior Secondary School 2 (JSS 2)</option>
+        <option value="SS 1">Senior Secondary School 1 (SS 1)</option>
+        <option value="SS 2">Senior Secondary School 2 (SS 2)</option>
+      </select>
+      <label>Portal Access Mode</label>
+      <select id="login-role" onchange="document.getElementById('login-name').disabled = this.value === 'admin';">
+        <option value="student">Student Portal (Take Exam)</option>
+        <option value="admin">Teacher Dashboard (View Scores)</option>
+      </select>
+      <button class="btn" onclick="handleLogin()">Enter Portal</button>
+    </div>
+
+    <div id="screen-already-taken" class="card hidden">
+      <h2>Exam Already Submitted</h2>
+      <div class="icon">🚫</div>
+      <p>A submission for <strong id="duplicate-name"></strong> in <strong id="duplicate-class"></strong> already exists in the system.</p>
+      <p>Each student can only take the exam once. Contact your teacher if you believe this is an error.</p>
+      <button class="btn" onclick="exitToAuth()">Back to Login</button>
+    </div>
+
+    <div id="screen-exam" class="card hidden">
+      <div id="exam-timer" class="timer-bar">03:00</div>
+      <div id="exam-title-header" style="font-weight:bold; color:var(--primary); margin-bottom:5px;">Loading test...</div>
+      <div id="exam-progress" style="font-size:12px; color:#666; margin-bottom:15px;">Question 1 of 10</div>
+      <div id="exam-question-box" class="question-box">Loading question text...</div>
+      <div id="exam-options-box"></div>
+      <div class="nav-btns">
+        <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+        <button class="btn" id="btn-next-submit" onclick="nextQuestion()">Next Question</button>
+      </div>
+    </div>
+
+    <div id="screen-result" class="card hidden" style="text-align: center;">
+      <h2 id="result-status-title">Test Completed!</h2>
+      <p>Your score has been recorded.</p>
+      <div id="result-score-display" class="score-circle">0/10</div>
+      <button class="btn" onclick="exitToAuth()">Back to Exit</button>
+    </div>
+
+    <div id="screen-admin" class="card hidden">
+      <h2>Live Cloud Scoreboard</h2>
+      <p style="font-size: 12px; color: #666;">Real-time performance pulled from your Supabase cloud.</p>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Student Name</th>
+              <th>Class</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-secondary" style="margin-top:20px;" onclick="exitToAuth()">Logout</button>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const ADMIN_PIN     = "1234";  // ← Change this to your own PIN
+    const EXAM_DURATION = 180;     // 3 minutes
+
+    const SUPABASE_URL = "https://fidgkwujyfqbxldzdjly.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZGdrd3VqeWZxYnhsZHpkamx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMzk1MzAsImV4cCI6MjA2NjYxNTUzMH0.b0gV-Xb9l2rM1B5x7gXm9p_062u0q1wX_m9v2u1x3y4";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let activeUser      = null;
+    let examClassKey    = 'jss1';
+    let currentIdx      = 0;
+    let selectedAnswers = {};
+    let timerInterval   = null;
+    let timeRemaining   = EXAM_DURATION;
+    let wasTimeOut      = false;
+
+    const QUESTION_MATRIX = {
+      jss1: {
+        title: "JSS 1 Basic Technology Test",
+        questions: [
+          { q: "Which of the following is a key hazard inside a technical workshop environment?", a: ["A. Wearing steel-toe boots", "B. Spills of engine oil on the walkways", "C. Returning tools to storage racks"], c: 1 },
+          { q: "The primary operational goal of safety rules is to ________.", a: ["A. Increase school fees", "B. Prevent accidents and injury", "C. Make workshops look neat"], c: 1 },
+          { q: "Which hand tool is specialized for driving screws perfectly into slots?", a: ["A. Claw Hammer", "B. Slotted Screwdriver", "C. Crosscut Handsaw"], c: 1 },
+          { q: "Timber harvested from deciduous trees is globally classified as ________.", a: ["A. Hardwood", "B. Softwood", "C. Plywood"], c: 0 },
+          { q: "Which marking tool is utilized to check and measure right angles (90 degrees)?", a: ["A. Try-square", "B. Jack plane", "C. Marking gauge"], c: 0 },
+          { q: "Plastics are broadly categorized into thermosetting options and ________.", a: ["A. Thermoplastics", "B. Elastic plastics", "C. Cast iron"], c: 0 },
+          { q: "The capacity of a metal structural element to resist scratches or indentation is:", a: ["A. Ductility", "B. Hardness", "C. Malleability"], c: 1 },
+          { q: "Which type of saw asset is ideal for executing precise curved cuts in timber sheets?", a: ["A. Rip saw", "B. Tenon saw", "C. Coping saw"], c: 2 },
+          { q: "What is the very first step to take during an unexpected workshop emergency?", a: ["A. Keep quiet and run away", "B. Administer First Aid and report immediately", "C. Pack up your personal belongings"], c: 1 },
+          { q: "An example of a valuable non-ferrous metal is ________.", a: ["A. Cast Iron", "B. Carbon Steel", "C. Pure Aluminum"], c: 2 }
+        ]
+      },
+      jss2: {
+        title: "JSS 2 Basic Technology Test",
+        questions: [
+          { q: "The technological operation of joining separate metal parts together using heat is:", a: ["A. Filing", "B. Welding", "C. Sanding"], c: 1 },
+          { q: "Which of the following gears transfers mechanical motion between parallel shafts?", a: ["A. Spur gear", "B. Bevel gear", "C. Worm gear"], c: 0 },
+          { q: "The ability of a material to return completely to its original shape after stretching is:", a: ["A. Brittleness", "B. Elasticity", "C. Plasticity"], c: 1 },
+          { q: "An example of a dynamic structural mechanical drive system is a ________.", a: ["A. Belt and pulley drive", "B. Plain timber plank", "C. Steel workbench leg"], c: 0 },
+          { q: "Which tool asset is specialized for smoothing and flattening wood surfaces?", a: ["A. Jack Plane", "B. Rasp file", "C. G-Cramp"], c: 0 },
+          { q: "The process of modifying raw iron ore assets into structural steel bars is called:", a: ["A. Seasoning", "B. Smelting and refining", "C. Tanning"], c: 1 },
+          { q: "Which of these is a liquid lubricant often introduced to reduce machine friction?", a: ["A. Engine Oil", "B. Coarse Sandpaper", "C. Graphite powder"], c: 0 },
+          { q: "The drawing equipment utilized to anchor your structural paper sheets flat onto the board is:", a: ["A. Protractor", "B. Masking tape or board clips", "C. Compass leg"], c: 1 },
+          { q: "A triangle that contains one internal angle measuring exactly 90 degrees is a ________.", a: ["A. Equilateral triangle", "B. Right-angled triangle", "C. Scalene triangle"], c: 1 },
+          { q: "Which organizational workflow prevents tool damage inside storage facilities?", a: ["A. Shadow boards and tool racks", "B. Throwing them loosely in drawers", "C. Leaving them wet on fields"], c: 0 }
+        ]
+      },
+      ss1: {
+        title: "SS 1 Agricultural Science Test",
+        questions: [
+          { q: "Which hand tool is most optimal for turning heavy soil layers and making ridges?", a: ["A. Pruning shears", "B. West African weeding hoe", "C. Hand trowel"], c: 1 },
+          { q: "The science and art of cultivating crops and rearing animals for human utility is:", a: ["A. Sociology", "B. Agricultural Science", "C. Geology"], c: 1 },
+          { q: "Which of these represents a critical biotic factor affecting open-field crop yield?", a: ["A. Solar radiation exposure", "B. Pest infestation", "C. Soil texture matrix"], c: 1 },
+          { q: "Rock units formed via intense cooling and crystallization of subterranean magma are:", a: ["A. Igneous rocks", "B. Sedimentary strata", "C. Metaphoric complexes"], c: 0 },
+          { q: "The systematic removal of excess surface water from waterlogged farmlands is:", a: ["A. Overhead Irrigation", "B. Soil Drainage", "C. Mulching layer placement"], c: 1 },
+          { q: "Which essential nutrient element is responsible for vegetable leafy growth enhancement?", a: ["A. Phosphorus", "B. Nitrogen", "C. Potassium"], c: 1 },
+          { q: "The process of human-guided selection of top-performing plant parents is:", a: ["A. Crop Breeding & Selection", "B. Deforestation clearing", "C. Bush burning"], c: 0 },
+          { q: "Which item is a non-governmental organization working on international food research?", a: ["A. IITA", "B. Local LGA Council Office", "C. Community Youth club"], c: 0 },
+          { q: "The ultimate source of energy fueling primary crop photosynthesis parameters is the:", a: ["A. Deep Water table", "B. Sun", "C. Organic fertilizer mix"], c: 1 },
+          { q: "Which type of land tenure system involves property inheritance across generations?", a: ["A. Leasehold contract", "B. Communal land allocation", "C. Customary/Family Inheritance"], c: 2 }
+        ]
+      },
+      ss2: {
+        title: "SS 2 Agricultural Science Test",
+        questions: [
+          { q: "What deficiency condition arises from a stark lack of trace minerals in feed rations?", a: ["A. Rickets and bone deformation", "B. Rapid feather coloration changes", "C. Excessive muscle mass expansions"], c: 0 },
+          { q: "The biochemical process where root nodules of legumes fix atmospheric nitrogen is:", a: ["A. Nitrification processing", "B. Symbiotic Biological Nitrogen Fixation", "C. Denitrification loss"], c: 1 },
+          { q: "An example of a specialized internal parasite causing localized organic liver damage is:", a: ["A. Tick vector", "B. Liver Fluke (Fasciola)", "C. Blowfly larva"], c: 1 },
+          { q: "The gestation period of a domestic breeding sow (pig) is approximately ________ days.", a: ["A. 60 days", "B. 114 days", "C. 280 days"], c: 1 },
+          { q: "Which economic law dictates that as product prices drop, customer demand expands?", a: ["A. Law of Diminishing returns", "B. Law of Demand", "C. Law of Supply vectors"], c: 1 },
+          { q: "The dynamic cultural operation of moving nursery seedlings out into permanent fields is:", a: ["A. Thinning out rows", "B. Transplanting", "C. Roguing infected stalks"], c: 1 },
+          { q: "Which organ inside a poultry chicken's digestive system is designed for mechanical grinding?", a: ["A. Proventriculus crop", "B. Gizzard", "C. Rumen segment"], c: 1 },
+          { q: "The structural layout pattern of spacing trees inside orchard farmlands is called:", a: ["A. Soil classification", "B. Planting pattern/system", "C. Crop rotation logging"], c: 1 },
+          { q: "The pricing valuation center where structural agricultural assets are actively traded is:", a: ["A. Production warehouse", "B. Farm Market Network", "C. General processing lab"], c: 1 },
+          { q: "A farm record logging all cash inflows and outflows within an operating year is a:", a: ["A. Inventory ledger", "B. Cash Book / Financial Record", "C. Production diary card"], c: 1 }
+        ]
+      }
+    };
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden'));
+      document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+    }
+
+    function handleLogin() {
+      const role = document.getElementById('login-role').value;
+      if (role === 'admin') { openPinOverlay(); return; }
+      const name = document.getElementById('login-name').value.trim();
+      const cls  = document.getElementById('login-class').value;
+      if (!name) { alert("Please enter your name to start the test."); return; }
+      activeUser = { name, class: cls };
+      const c = cls.toLowerCase();
+      if      (c.includes('jss 1') || c.includes('jss1')) examClassKey = 'jss1';
+      else if (c.includes('jss 2') || c.includes('jss2')) examClassKey = 'jss2';
+      else if (c.includes('ss 2')  || c.includes('ss2'))  examClassKey = 'ss2';
+      else                                                  examClassKey = 'ss1';
+      checkDuplicateAndStart();
+    }
+
+    async function checkDuplicateAndStart() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('scores')
+          .select('id')
+          .eq('student_name', activeUser.name)
+          .eq('student_class', activeUser.class)
+          .limit(1);
+        if (error) throw error;
+        if (data && data.length > 0) {
+          document.getElementById('duplicate-name').innerText  = activeUser.name;
+          document.getElementById('duplicate-class').innerText = activeUser.class;
+          showScreen('already-taken');
+          return;
+        }
+        startExam();
+      } catch (err) {
+        console.error("Duplicate check failed:", err);
+        startExam();
+      }
+    }
+
+    function startExam() {
+      currentIdx = 0; selectedAnswers = {};
+      timeRemaining = EXAM_DURATION; wasTimeOut = false;
+      showScreen('exam');
+      renderCbtQuestion();
+      startTimerEngine();
+    }
+
+    function startTimerEngine() {
+      clearInterval(timerInterval);
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          wasTimeOut = true;
+          processExamSubmission();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timeRemaining / 60);
+      const s = timeRemaining % 60;
+      document.getElementById('exam-timer').innerText =
+        `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+
+    function renderCbtQuestion() {
+      const paper = QUESTION_MATRIX[examClassKey];
+      const qData = paper.questions[currentIdx];
+      document.getElementById('exam-title-header').innerText = paper.title;
+      document.getElementById('exam-progress').innerText     = `Question ${currentIdx + 1} / 10`;
+      document.getElementById('exam-question-box').innerText = qData.q;
+      const box = document.getElementById('exam-options-box');
+      box.innerHTML = '';
+      qData.a.forEach((text, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `option-btn ${selectedAnswers[currentIdx] === idx ? 'selected' : ''}`;
+        btn.innerText = text;
+        btn.onclick   = () => { selectedAnswers[currentIdx] = idx; renderCbtQuestion(); };
+        box.appendChild(btn);
+      });
+      const nextBtn = document.getElementById('btn-next-submit');
+      if (currentIdx === 9) {
+        nextBtn.innerText = "Submit Test";
+        nextBtn.style.background = "#dc2626";
+      } else {
+        nextBtn.innerText = "Next Question";
+        nextBtn.style.background = "var(--primary)";
+      }
+    }
+
+    function nextQuestion() {
+      if (currentIdx < 9) { currentIdx++; renderCbtQuestion(); }
+      else processExamSubmission();
+    }
+
+    function prevQuestion() {
+      if (currentIdx > 0) { currentIdx--; renderCbtQuestion(); }
+    }
+
+    async function processExamSubmission() {
+      clearInterval(timerInterval);
+      let score = 0;
+      QUESTION_MATRIX[examClassKey].questions.forEach((q, idx) => {
+        if (selectedAnswers[idx] === q.c) score++;
+      });
+      try {
+        const { error } = await supabaseClient
+          .from('scores')
+          .insert([{ student_name: activeUser.name, student_class: activeUser.class, scores: score }]);
+        if (error) throw error;
+      } catch (err) { console.error("Score save error:", err); }
+      document.getElementById('result-status-title').innerText =
+        wasTimeOut ? "Time is Up! Test Auto-Submitted." : "Test Submitted!";
+      document.getElementById('result-score-display').innerText = `${score} / 10`;
+      showScreen('result');
+    }
+
+    function openPinOverlay() {
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-error').innerText = '';
+      document.getElementById('pin-overlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('pin-input').focus(), 100);
+    }
+
+    function closePinOverlay() {
+      document.getElementById('pin-overlay').classList.add('hidden');
+      document.getElementById('login-role').value = 'student';
+      document.getElementById('login-name').disabled = false;
+    }
+
+    function verifyPin() {
+      const entered = document.getElementById('pin-input').value.trim();
+      if (entered === ADMIN_PIN) {
+        document.getElementById('pin-overlay').classList.add('hidden');
+        loadAdminLeaderboard();
+      } else {
+        document.getElementById('pin-error').innerText = "Incorrect PIN. Try again.";
+        document.getElementById('pin-input').value = '';
+        document.getElementById('pin-input').focus();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('pin-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') verifyPin();
+      });
+    });
+
+    async function loadAdminLeaderboard() {
+      showScreen('admin');
+      const tbody = document.getElementById('leaderboard-tbody');
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">Loading scores...</td></tr>`;
+      try {
+        const { data, error } = await supabaseClient.from('scores').select('*');
+        if (error) throw error;
+        tbody.innerHTML = '';
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">No scores recorded yet.</td></tr>`;
+          return;
+        }
+        data.sort((a, b) => (b.scores || 0) - (a.scores || 0))
+            .forEach((row, i) => {
+              const rank = i === 0 ? '🥇 1' : i === 1 ? '🥈 2' : i === 2 ? '🥉 3' : i + 1;
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td style="font-weight:bold;">${rank}</td>
+                <td><strong>${row.student_name || 'Unknown'}</strong></td>
+                <td><span style="background:#e2e8f0;padding:3px 6px;border-radius:4px;font-size:11px;">${row.student_class || 'N/A'}</span></td>
+                <td style="font-weight:bold;color:var(--primary);font-size:15px;">${row.scores ?? 0} / 10</td>`;
+              tbody.appendChild(tr);
+            });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:red;">Failed to load scores.</td></tr>`;
+      }
+    }
+
+    function exitToAuth() {
+      clearInterval(timerInterval);
+      activeUser = null;
+      document.getElementById('login-name').value    = '';
+      document.getElementById('login-name').disabled = false;
+      document.getElementById('login-role').value    = 'student';
+      showScreen('auth');
+    }
+  </script>
+</body>
+</html>
