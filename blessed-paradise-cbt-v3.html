@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blessed Paradise - CBT Portal</title>
+  <style>
+    :root {
+      --primary: #064e3b;
+      --accent: #f59e0b;
+      --bg: #f5f5f4;
+      --dark: #1c1917;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 0; font-size: 14px; }
+    header { background-color: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .container { max-width: 500px; margin: 20px auto; padding: 15px; }
+    .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    h2 { margin-top: 0; color: var(--primary); font-size: 18px; border-bottom: 2px solid #f0f0ee; padding-bottom: 8px; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+    .btn { background-color: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 15px; }
+    .btn:active { opacity: 0.9; }
+    .hidden { display: none !important; }
+    .timer-bar { background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+    .question-box { font-size: 16px; font-weight: 600; margin-bottom: 15px; line-height: 1.4; }
+    .option-btn { display: block; width: 100%; text-align: left; padding: 12px; margin-bottom: 10px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .option-btn.selected { background-color: #d1fae5; border-color: var(--primary); font-weight: 600; }
+    .nav-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .btn-secondary { background: #e2e8f0; color: var(--dark); }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f1f5f9; color: var(--primary); }
+    #pin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    #pin-box { background: white; border-radius: 10px; padding: 28px 24px; width: 280px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    #pin-box h3 { margin: 0 0 6px; color: var(--primary); }
+    #pin-box p { font-size: 12px; color: #666; margin: 0 0 16px; }
+    #pin-input { width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 6px; font-size: 20px; text-align: center; letter-spacing: 6px; box-sizing: border-box; }
+    #pin-input:focus { border-color: var(--primary); outline: none; }
+    #pin-error { color: #dc2626; font-size: 12px; margin-top: 8px; min-height: 16px; }
+    .pin-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    #screen-already-taken { text-align: center; }
+    #screen-already-taken .icon { font-size: 48px; margin: 10px 0; }
+    #screen-already-taken p { color: #666; font-size: 14px; line-height: 1.5; }
+    #screen-result { text-align: center; }
+    .result-slip { border: 2px dashed var(--primary); border-radius: 10px; padding: 20px; margin: 15px 0; text-align: left; }
+    .result-slip .slip-header { text-align: center; font-weight: bold; color: var(--primary); font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+    .result-slip .slip-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #e2e8f0; font-size: 13px; }
+    .result-slip .slip-row span:first-child { color: #666; }
+    .result-slip .slip-row span:last-child { font-weight: 600; }
+    .result-slip .slip-notice { margin-top: 15px; background: #fef9c3; border: 1px solid #fbbf24; border-radius: 6px; padding: 10px; font-size: 12px; text-align: center; color: #92400e; }
+    .success-icon { font-size: 48px; margin: 10px 0; }
+    @media print {
+      header, .btn, .nav-btns { display: none !important; }
+      .result-slip { border: 2px solid #000; }
+      body { background: white; }
+      .container { margin: 0; padding: 0; }
+      .card { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>Blessed Paradise School</header>
+
+<div id="pin-overlay" class="hidden">
+  <div id="pin-box">
+    <h3>🔐 Teacher Access</h3>
+    <p>Enter your 4-digit admin PIN to continue</p>
+    <input type="password" id="pin-input" maxlength="4" inputmode="numeric" placeholder="••••">
+    <div id="pin-error"></div>
+    <div class="pin-btns">
+      <button class="btn btn-secondary" style="margin-top:0;" onclick="closePinOverlay()">Cancel</button>
+      <button class="btn" style="margin-top:0;" onclick="verifyPin()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="screen-auth" class="card">
+    <h2>CBT Examination Portal</h2>
+    <label>Full Name</label>
+    <input type="text" id="login-name" placeholder="Enter student's full name">
+    <label>Class</label>
+    <select id="login-class" onchange="updateSubjects()">
+      <option value="">-- Select Class --</option>
+      <option value="JSS 1">JSS 1</option>
+      <option value="JSS 2">JSS 2</option>
+      <option value="JSS 3">JSS 3</option>
+      <option value="SS 1">SS 1</option>
+      <option value="SS 2">SS 2</option>
+    </select>
+    <label>Subject</label>
+    <select id="login-subject">
+      <option value="">-- Select Class First --</option>
+    </select>
+    <label>Portal Access Mode</label>
+    <select id="login-role" onchange="document.getElementById('login-name').disabled = this.value === 'admin';">
+      <option value="student">Student Portal (Take Exam)</option>
+      <option value="admin">Teacher Dashboard (View Scores)</option>
+    </select>
+    <button class="btn" onclick="handleLogin()">Enter Portal</button>
+  </div>
+
+  <!-- ALREADY TAKEN -->
+  <div id="screen-already-taken" class="card hidden">
+    <h2>Exam Already Submitted</h2>
+    <div class="icon">🚫</div>
+    <p>A submission for <strong id="duplicate-name"></strong> in <strong id="duplicate-class"></strong> for <strong id="duplicate-subject"></strong> already exists.</p>
+    <p>Each student can only take each subject exam once. Contact your teacher if you believe this is an error.</p>
+    <button class="btn" onclick="exitToAuth()">Back to Login</button>
+  </div>
+
+  <!-- EXAM -->
+  <div id="screen-exam" class="card hidden">
+    <div id="exam-timer" class="timer-bar">03:00</div>
+    <div id="exam-title-header" style="font-weight:bold; color:var(--primary); margin-bottom:5px;"></div>
+    <div id="exam-progress" style="font-size:12px; color:#666; margin-bottom:15px;">Question 1 of 10</div>
+    <div id="exam-question-box" class="question-box"></div>
+    <div id="exam-options-box"></div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+      <button class="btn" id="btn-next-submit" onclick="nextQuestion()">Next Question</button>
+    </div>
+  </div>
+
+  <!-- RESULT SLIP -->
+  <div id="screen-result" class="card hidden">
+    <h2>Exam Submitted</h2>
+    <div class="success-icon">✅</div>
+    <div class="result-slip" id="printable-slip">
+      <div class="slip-header">🏫 Blessed Paradise School<br><span style="font-size:12px; font-weight:normal;">CBT Examination Slip</span></div>
+      <div class="slip-row"><span>Student Name:</span><span id="slip-name">—</span></div>
+      <div class="slip-row"><span>Class:</span><span id="slip-class">—</span></div>
+      <div class="slip-row"><span>Subject:</span><span id="slip-subject">—</span></div>
+      <div class="slip-row"><span>Date:</span><span id="slip-date">—</span></div>
+      <div class="slip-row"><span>Time Submitted:</span><span id="slip-time">—</span></div>
+      <div class="slip-row"><span>Status:</span><span style="color:green;">✓ Submitted</span></div>
+      <div class="slip-notice">📋 Your score will be released by your teacher. Keep this slip as proof of submission.</div>
+    </div>
+    <button class="btn" onclick="window.print()">🖨️ Print / Save Slip</button>
+    <button class="btn btn-secondary" onclick="exitToAuth()">Back to Exit</button>
+  </div>
+
+  <!-- ADMIN BOARD -->
+  <div id="screen-admin" class="card hidden">
+    <h2>Live Scoreboard</h2>
+    <p style="font-size: 12px; color: #666;">Scores pulled directly from Google Sheets.</p>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th><th>Student Name</th><th>Class</th><th>Subject</th><th>Score</th><th>Date</th><th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-tbody"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:20px;" onclick="exitToAuth()">Logout</button>
+  </div>
+
+</div>
+
+<script>
+  const ADMIN_PIN     = "1234";
+  const EXAM_DURATION = 180;
+  const SHEETDB_URL   = "https://sheetdb.io/api/v1/8f6b3gwiyu3f4";
+
+  let activeUser        = null;
+  let currentIdx        = 0;
+  let selectedAnswers   = {};
+  let timerInterval     = null;
+  let timeRemaining     = EXAM_DURATION;
+  let wasTimeOut        = false;
+  let shuffledQuestions = [];
+  let activeSubjectKey  = "";
+
+  // ── SUBJECT MAP PER CLASS ──────────────────────────────
+  const CLASS_SUBJECTS = {
+    "JSS 1": ["Basic Technology", "Mathematics", "English Studies", "Agricultural Science", "Home Economics", "Computer Studies", "Basic Science", "Social Studies", "Civic Education", "CRS", "French", "PHE", "CCA", "Business Studies"],
+    "JSS 2": ["Basic Technology", "Mathematics", "English Studies", "Agricultural Science", "Home Economics", "Computer Studies", "Basic Science", "Social Studies", "Civic Education", "CRS", "French", "PHE", "CCA", "Business Studies"],
+    "JSS 3": ["Basic Technology", "Mathematics", "English Studies", "Agricultural Science", "Home Economics", "Computer Studies", "Basic Science", "Social Studies", "Civic Education", "CRS", "French", "PHE", "CCA", "Business Studies"],
+    "SS 1":  ["Financial Accounting", "Mathematics", "English Studies", "Agricultural Science", "Biology", "Chemistry", "Physics", "Economics", "Civic Education", "Government", "Further Mathematics", "Marketing", "CRS", "Literature in English"],
+    "SS 2":  ["Financial Accounting", "Mathematics", "English Studies", "Agricultural Science", "Biology", "Chemistry", "Physics", "Economics", "Civic Education", "Government", "Further Mathematics", "Marketing", "CRS", "Literature in English", "Commerce"]
+  };
+
+  // ── QUESTION BANK ──────────────────────────────────────
+  const QUESTION_BANK = {
+
+    "JSS 1_Basic Technology": {
+      title: "JSS 1 Basic Technology",
+      questions: [
+        { q: "The workshop is a place where ________.", a: ["A. Students sleep", "B. Practical work is done using tools and machines", "C. Teachers hold meetings"], c: 1 },
+        { q: "Which of the following is a safety rule in the workshop?", a: ["A. Run when carrying tools", "B. Wear appropriate protective equipment", "C. Leave tools on the floor"], c: 1 },
+        { q: "First Aid is best described as ________.", a: ["A. Full medical treatment", "B. Immediate temporary care given to an injured person", "C. A type of workshop tool"], c: 1 },
+        { q: "Wood used in engineering is obtained from ________.", a: ["A. Rocks", "B. Trees", "C. Metal ores"], c: 1 },
+        { q: "Hardwood is obtained from ________.", a: ["A. Softwood trees", "B. Deciduous trees", "C. Coniferous trees"], c: 1 },
+        { q: "Which of the following is a physical property of wood?", a: ["A. Electrical conductivity", "B. Colour and grain", "C. Magnetic property"], c: 1 },
+        { q: "Wood is used domestically for ________.", a: ["A. Making concrete", "B. Furniture and flooring", "C. Electrical wiring"], c: 1 },
+        { q: "A butt joint is a type of ________.", a: ["A. Metal fastening", "B. Simple wood joint", "C. Finishing material"], c: 1 },
+        { q: "Varnish is applied to wood as a ________.", a: ["A. Fastening device", "B. Finishing material", "C. Cutting tool"], c: 1 },
+        { q: "Regular maintenance of tools is important because it ________.", a: ["A. Makes tools heavier", "B. Prolongs tool life and ensures safety", "C. Changes the tool colour"], c: 1 }
+      ]
+    },
+
+    "JSS 2_Basic Technology": {
+      title: "JSS 2 Basic Technology",
+      questions: [
+        { q: "A belt and chain drive is used to ________.", a: ["A. Cut metal", "B. Transmit power between shafts", "C. Measure angles"], c: 1 },
+        { q: "A gear is a mechanical device used to ________.", a: ["A. Store energy", "B. Transmit and modify rotational motion", "C. Measure speed"], c: 1 },
+        { q: "A hydraulic machine uses ________.", a: ["A. Air pressure", "B. Liquid pressure to transmit force", "C. Electrical energy only"], c: 1 },
+        { q: "A pneumatic machine operates using ________.", a: ["A. Water pressure", "B. Compressed air", "C. Steam power"], c: 1 },
+        { q: "Building construction begins with ________.", a: ["A. Roofing", "B. Site preparation", "C. Plastering"], c: 1 },
+        { q: "Setting out in building construction means ________.", a: ["A. Painting the building", "B. Marking out the building outline on the ground", "C. Installing windows"], c: 1 },
+        { q: "Water supply in a building comes through ________.", a: ["A. Electrical cables", "B. Pipes and tap systems", "C. Wooden channels"], c: 1 },
+        { q: "Which of these is a type of gear?", a: ["A. Spur gear", "B. Flat saw", "C. Round file"], c: 0 },
+        { q: "A chain drive differs from a belt drive because it uses ________.", a: ["A. Rubber bands", "B. Interlocking chain links", "C. Smooth flat surfaces"], c: 1 },
+        { q: "Practical work in Basic Technology helps students to ________.", a: ["A. Avoid using tools", "B. Develop hands-on technical skills", "C. Study only theory"], c: 1 }
+      ]
+    },
+
+    "JSS 3_Basic Technology": {
+      title: "JSS 3 Basic Technology",
+      questions: [
+        { q: "A simple machine is a device that ________.", a: ["A. Generates electricity", "B. Makes work easier by reducing effort", "C. Stores water"], c: 1 },
+        { q: "Which of the following is a type of simple machine?", a: ["A. Cupboard", "B. Lever", "C. Bucket"], c: 1 },
+        { q: "Mechanical advantage is the ratio of ________.", a: ["A. Speed to distance", "B. Load to effort", "C. Weight to height"], c: 1 },
+        { q: "Velocity ratio is defined as ________.", a: ["A. Distance moved by effort divided by distance moved by load", "B. Load divided by effort", "C. Speed divided by time"], c: 0 },
+        { q: "The efficiency of a machine is always ________.", a: ["A. Greater than 100%", "B. Less than or equal to 100%", "C. Equal to 200%"], c: 1 },
+        { q: "Machine maintenance means ________.", a: ["A. Buying new machines", "B. Keeping machines in good working condition", "C. Painting machines"], c: 1 },
+        { q: "Which of these is a renewable energy source?", a: ["A. Coal", "B. Solar energy", "C. Petroleum"], c: 1 },
+        { q: "Non-renewable energy sources include ________.", a: ["A. Wind energy", "B. Fossil fuels", "C. Solar energy"], c: 1 },
+        { q: "A conductor allows ________.", a: ["A. No electricity to pass through", "B. Electricity to flow freely", "C. Only heat to pass"], c: 1 },
+        { q: "A simple electrical circuit must contain ________.", a: ["A. Only a bulb", "B. A power source, conductor and load", "C. Only wires"], c: 1 }
+      ]
+    },
+
+    "SS 1_Financial Accounting": {
+      title: "SS 1 Financial Accounting",
+      questions: [
+        { q: "The process of checking bank statement against cash book entries is called ________.", a: ["A. Bank Reconciliation", "B. Trial Balance", "C. Ledger Posting"], c: 0 },
+        { q: "A bank overdraft means the account holder has ________.", a: ["A. Excess funds", "B. Spent more than the account balance", "C. Received bank interest"], c: 1 },
+        { q: "Accruals in accounting refer to ________.", a: ["A. Cash already received", "B. Expenses incurred but not yet paid", "C. Assets purchased outright"], c: 1 },
+        { q: "Prepayment means ________.", a: ["A. Payment made in advance", "B. Payment made after due date", "C. Payment made in installments"], c: 0 },
+        { q: "Bad debt refers to ________.", a: ["A. A debt that cannot be recovered", "B. A loan with high interest", "C. Money owed to suppliers"], c: 0 },
+        { q: "Provision for bad debt is created to ________.", a: ["A. Increase profit", "B. Anticipate possible losses from debtors", "C. Pay creditors directly"], c: 1 },
+        { q: "Depreciation is the ________.", a: ["A. Increase in asset value over time", "B. Gradual decrease in asset value", "C. Purchase of new assets"], c: 1 },
+        { q: "The straight line method of depreciation means ________.", a: ["A. Asset depreciates at a reducing rate", "B. Equal amount is charged every year", "C. Depreciation stops after 5 years"], c: 1 },
+        { q: "Which of the following is NOT a cause of depreciation?", a: ["A. Wear and tear", "B. Obsolescence", "C. Increase in market price"], c: 2 },
+        { q: "A Balance Sheet shows ________.", a: ["A. Only income and expenses", "B. Assets, liabilities and capital of a business", "C. Only cash transactions"], c: 1 }
+      ]
+    },
+
+    "SS 2_Financial Accounting": {
+      title: "SS 2 Financial Accounting",
+      questions: [
+        { q: "Single entry bookkeeping records ________.", a: ["A. Every transaction twice", "B. Only one aspect of a transaction", "C. Only credit transactions"], c: 1 },
+        { q: "Incomplete records differ from double entry because they ________.", a: ["A. Record all transactions fully", "B. Lack full double entry records", "C. Only record cash transactions"], c: 1 },
+        { q: "A Control Account is used to ________.", a: ["A. Check the accuracy of personal accounts in the ledger", "B. Record fixed assets", "C. Pay salaries"], c: 0 },
+        { q: "A Debtors Control Account records ________.", a: ["A. All payments to suppliers", "B. All transactions with customers who owe money", "C. Cash sales only"], c: 1 },
+        { q: "Non-profit making organizations prepare ________.", a: ["A. Trading Account", "B. Income and Expenditure Account", "C. Manufacturing Account"], c: 1 },
+        { q: "The excess of income over expenditure in a non-profit organization is called ________.", a: ["A. Net Profit", "B. Surplus", "C. Gross Profit"], c: 1 },
+        { q: "A Joint Venture is ________.", a: ["A. A permanent business partnership", "B. A temporary business arrangement between two parties", "C. A government owned business"], c: 1 },
+        { q: "Consignment account records goods ________.", a: ["A. Sold directly to customers", "B. Sent to an agent to sell on behalf of the owner", "C. Purchased from suppliers"], c: 1 },
+        { q: "The person who sends goods on consignment is called the ________.", a: ["A. Consignee", "B. Consignor", "C. Creditor"], c: 1 },
+        { q: "In a Joint Venture, profits are shared ________.", a: ["A. Equally always", "B. According to agreed ratio between the parties", "C. Based on years of experience"], c: 1 }
+      ]
+    }
+
+  };
+
+  // ── COMING SOON placeholder ────────────────────────────
+  function comingSoon(title) {
+    return {
+      title,
+      questions: Array.from({ length: 10 }, (_, i) => ({
+        q: `Sample Question ${i + 1} for ${title} — Questions coming soon.`,
+        a: ["A. Option A", "B. Option B", "C. Option C"],
+        c: 0
+      }))
+    };
+  }
+
+  // Auto-fill missing subjects with coming soon
+  ["JSS 1","JSS 2","JSS 3","SS 1","SS 2"].forEach(cls => {
+    CLASS_SUBJECTS[cls].forEach(sub => {
+      const key = cls + "_" + sub;
+      if (!QUESTION_BANK[key]) QUESTION_BANK[key] = comingSoon(cls + " " + sub);
+    });
+  });
+
+  // ── SUBJECT DROPDOWN UPDATE ────────────────────────────
+  function updateSubjects() {
+    const cls     = document.getElementById("login-class").value;
+    const sel     = document.getElementById("login-subject");
+    sel.innerHTML = "";
+    if (!cls) { sel.innerHTML = '<option value="">-- Select Class First --</option>'; return; }
+    CLASS_SUBJECTS[cls].forEach(sub => {
+      const opt   = document.createElement("option");
+      opt.value   = sub;
+      opt.innerText = sub;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ── HELPERS ────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll(".container > div").forEach(d => d.classList.add("hidden"));
+    document.getElementById("screen-" + id).classList.remove("hidden");
+  }
+
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function getNowDate() { return new Date().toLocaleDateString("en-GB"); }
+  function getNowTime() { return new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }); }
+
+  // ── LOGIN ──────────────────────────────────────────────
+  function handleLogin() {
+    const role    = document.getElementById("login-role").value;
+    if (role === "admin") { openPinOverlay(); return; }
+    const name    = document.getElementById("login-name").value.trim();
+    const cls     = document.getElementById("login-class").value;
+    const subject = document.getElementById("login-subject").value;
+    if (!name)    { alert("Please enter your name."); return; }
+    if (!cls)     { alert("Please select your class."); return; }
+    if (!subject) { alert("Please select a subject."); return; }
+    activeUser      = { name, class: cls, subject };
+    activeSubjectKey = cls + "_" + subject;
+    checkDuplicateAndStart();
+  }
+
+  // ── DUPLICATE CHECK ────────────────────────────────────
+  async function checkDuplicateAndStart() {
+    try {
+      const res  = await fetch(
+        SHEETDB_URL + "/search?student_name=" + encodeURIComponent(activeUser.name) +
+        "&student_class=" + encodeURIComponent(activeUser.class) +
+        "&subject=" + encodeURIComponent(activeUser.subject)
+      );
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        document.getElementById("duplicate-name").innerText    = activeUser.name;
+        document.getElementById("duplicate-class").innerText   = activeUser.class;
+        document.getElementById("duplicate-subject").innerText = activeUser.subject;
+        showScreen("already-taken");
+        return;
+      }
+    } catch (e) { /* allow in on error */ }
+    startExam();
+  }
+
+  // ── EXAM ───────────────────────────────────────────────
+  function startExam() {
+    currentIdx        = 0;
+    selectedAnswers   = {};
+    timeRemaining     = EXAM_DURATION;
+    wasTimeOut        = false;
+    shuffledQuestions = shuffleArray(QUESTION_BANK[activeSubjectKey].questions);
+    showScreen("exam");
+    renderCbtQuestion();
+    startTimerEngine();
+  }
+
+  function startTimerEngine() {
+    clearInterval(timerInterval);
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      timeRemaining--;
+      updateTimerDisplay();
+      if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        wasTimeOut = true;
+        processExamSubmission();
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(timeRemaining / 60);
+    const s = timeRemaining % 60;
+    document.getElementById("exam-timer").innerText =
+      String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  }
+
+  function renderCbtQuestion() {
+    const paper = QUESTION_BANK[activeSubjectKey];
+    const qData = shuffledQuestions[currentIdx];
+    document.getElementById("exam-title-header").innerText = paper.title;
+    document.getElementById("exam-progress").innerText     = "Question " + (currentIdx + 1) + " / 10";
+    document.getElementById("exam-question-box").innerText = qData.q;
+    const box = document.getElementById("exam-options-box");
+    box.innerHTML = "";
+    qData.a.forEach((text, idx) => {
+      const btn     = document.createElement("button");
+      btn.className = "option-btn" + (selectedAnswers[currentIdx] === idx ? " selected" : "");
+      btn.innerText = text;
+      btn.onclick   = () => { selectedAnswers[currentIdx] = idx; renderCbtQuestion(); };
+      box.appendChild(btn);
+    });
+    const nb = document.getElementById("btn-next-submit");
+    if (currentIdx === 9) { nb.innerText = "Submit Test"; nb.style.background = "#dc2626"; }
+    else                  { nb.innerText = "Next Question"; nb.style.background = "var(--primary)"; }
+  }
+
+  function nextQuestion() {
+    if (currentIdx < 9) { currentIdx++; renderCbtQuestion(); }
+    else processExamSubmission();
+  }
+
+  function prevQuestion() {
+    if (currentIdx > 0) { currentIdx--; renderCbtQuestion(); }
+  }
+
+  // ── SUBMISSION ─────────────────────────────────────────
+  async function processExamSubmission() {
+    clearInterval(timerInterval);
+    let score = 0;
+    shuffledQuestions.forEach((q, i) => { if (selectedAnswers[i] === q.c) score++; });
+    const submitDate = getNowDate();
+    const submitTime = getNowTime();
+    try {
+      await fetch(SHEETDB_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: [{
+            student_name:  activeUser.name,
+            student_class: activeUser.class,
+            subject:       activeUser.subject,
+            scores:        score,
+            date:          submitDate,
+            time:          submitTime
+          }]
+        })
+      });
+    } catch (e) { console.error(e); }
+    document.getElementById("slip-name").innerText    = activeUser.name;
+    document.getElementById("slip-class").innerText   = activeUser.class;
+    document.getElementById("slip-subject").innerText = activeUser.subject;
+    document.getElementById("slip-date").innerText    = submitDate;
+    document.getElementById("slip-time").innerText    = submitTime;
+    showScreen("result");
+  }
+
+  // ── PIN ────────────────────────────────────────────────
+  function openPinOverlay() {
+    document.getElementById("pin-input").value         = "";
+    document.getElementById("pin-error").innerText     = "";
+    document.getElementById("pin-overlay").classList.remove("hidden");
+    setTimeout(() => document.getElementById("pin-input").focus(), 100);
+  }
+
+  function closePinOverlay() {
+    document.getElementById("pin-overlay").classList.add("hidden");
+    document.getElementById("login-role").value        = "student";
+    document.getElementById("login-name").disabled     = false;
+  }
+
+  function verifyPin() {
+    const entered = document.getElementById("pin-input").value.trim();
+    if (entered === ADMIN_PIN) {
+      document.getElementById("pin-overlay").classList.add("hidden");
+      loadAdminLeaderboard();
+    } else {
+      document.getElementById("pin-error").innerText = "Incorrect PIN. Try again.";
+      document.getElementById("pin-input").value     = "";
+      document.getElementById("pin-input").focus();
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("pin-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") verifyPin();
+    });
+  });
+
+  // ── ADMIN BOARD ────────────────────────────────────────
+  async function loadAdminLeaderboard() {
+    showScreen("admin");
+    const tbody = document.getElementById("leaderboard-tbody");
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#666;">Loading scores...</td></tr>`;
+    try {
+      const res  = await fetch(SHEETDB_URL);
+      const data = await res.json();
+      tbody.innerHTML = "";
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#666;">No scores recorded yet.</td></tr>`;
+        return;
+      }
+      data.sort((a, b) => (Number(b.scores) || 0) - (Number(a.scores) || 0))
+          .forEach((row, i) => {
+            const rank = i === 0 ? "🥇 1" : i === 1 ? "🥈 2" : i === 2 ? "🥉 3" : i + 1;
+            const tr   = document.createElement("tr");
+            tr.innerHTML =
+              "<td style='font-weight:bold;'>" + rank + "</td>" +
+              "<td><strong>" + (row.student_name  || "Unknown") + "</strong></td>" +
+              "<td><span style='background:#e2e8f0;padding:2px 5px;border-radius:4px;font-size:11px;'>" + (row.student_class || "N/A") + "</span></td>" +
+              "<td style='font-size:12px;'>" + (row.subject       || "N/A") + "</td>" +
+              "<td style='font-weight:bold;color:var(--primary);'>" + (row.scores ?? 0) + " / 10</td>" +
+              "<td style='font-size:11px;color:#666;'>" + (row.date || "—") + "</td>" +
+              "<td style='font-size:11px;color:#666;'>" + (row.time || "—") + "</td>";
+            tbody.appendChild(tr);
+          });
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:red;">Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  // ── RESET ──────────────────────────────────────────────
+  function exitToAuth() {
+    clearInterval(timerInterval);
+    activeUser    = null;
+    document.getElementById("login-name").value    = "";
+    document.getElementById("login-name").disabled = false;
+    document.getElementById("login-role").value    = "student";
+    document.getElementById("login-class").value   = "";
+    updateSubjects();
+    showScreen("auth");
+  }
+</script>
+</body>
+</html>
